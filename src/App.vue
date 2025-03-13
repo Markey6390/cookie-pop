@@ -43,10 +43,8 @@ const isShadowSettingsOpen = ref(false);
 const expirationTime = ref(7 * 24 * 60 * 60);
 const isExpirationSettingsOpen = ref(false);
 const showCopyContent = ref(false);
-const showHtmlCopySuccess = ref(false);
-const showJsCopySuccess = ref(false);
-const htmlContent = ref('');
-const jsContent = ref('');
+const showCopySuccess = ref(false)
+const generatedCode = ref('')
 
 const closeButton = reactive({
   show: false,
@@ -95,6 +93,7 @@ const showOverlay = computed(() => {
 })
 
 
+
 function closeCookiePop() {
   // Logic to close the Cookie Pop
   console.log('Cookie Pop closed');
@@ -110,29 +109,24 @@ function copyContent() {
   (['#CookiePopResultPreviewMessage', '#CookiePopCopyButton']).forEach(selector => {
     clonedElement.querySelectorAll(selector).forEach(el => el.remove());
   });
-  let htmlCode = clonedElement.outerHTML;
+  const htmlCode = (clonedElement.outerHTML).replace(/<!--[\s\S]*?-->/g, "");
 
-  htmlContent.value = htmlCode.replace(/<!--[\s\S]*?-->/g, "")
-  jsContent.value = `<script>
+  generatedCode.value = `
+${htmlCode}
+<script>
 function getCookie(name) { return document.cookie.split('; ').find(row => row.startsWith(name + '=')) ?.split('=')[1] || null; }
 if (getCookie('${cookieKey}') !== 'true') { document.querySelector('#CookiePopResultPreview').style.display = 'block'; }
 document.querySelector('#CookiePopCloseButton').addEventListener('click', function() { document.cookie = '${cookieKey}=true; max-age=${expirationTime.value}; path=\/'; document.querySelector('#CookiePopResultPreview').style.display = 'none'; });
 <\/script>`;
 }
 
-function copyToClipboard(content, type) {
+function copyToClipboard() {
+  const content = generatedCode.value;
   navigator.clipboard.writeText(content).then(() => {
-    if (type === 'html') {
-      showHtmlCopySuccess.value = true;
-      setTimeout(() => {
-        showHtmlCopySuccess.value = false;
-      }, 2000);
-    } else if (type === 'js') {
-      showJsCopySuccess.value = true;
-      setTimeout(() => {
-        showJsCopySuccess.value = false;
-      }, 2000);
-    }
+    showCopySuccess.value = true;
+    setTimeout(() => {
+      showCopySuccess.value = false;
+    }, 2000);
   }).catch(err => {
     console.error('複製失敗', err);
   });
@@ -417,25 +411,17 @@ function getCookie(name) {
       <div id="resultContainer" v-if="showCopyContent" class="fixed z-150 max-w-[600px] w-screen right-15 top-15">
         <div class="mt-4 p-6 border bg-white shadow-lg  relative rounded-lg max-w-3xl mx-auto">
           <h3 class="font-bold mb-4 flex justify-start items-center">
-            HTML 程式碼
+            HTML/JavaScript 程式碼
             <div class="flex items-center">
-              <button @click="copyToClipboard(htmlContent, 'html')" class="text-gray-500 hover:text-gray-700 ml-4">
+              <button @click="copyToClipboard" class="text-gray-500 hover:text-gray-700 ml-4">
                 <i class="fas fa-copy"></i>
               </button>
-              <span v-if="showHtmlCopySuccess" class="text-green-500 ml-2">複製成功！</span>
+              <span v-if="showCopySuccess" class="text-green-500 ml-2">複製成功！</span>
             </div>
           </h3>
-          <pre class="overflow-auto max-h-64 bg-gray-100 p-4 rounded-lg">{{ htmlContent }}</pre>
-          <h3 class="font-bold mt-6 mb-4 flex justify-start items-center">
-            JavaScript 程式碼
-            <div class="flex items-center">
-              <button @click="copyToClipboard(jsContent, 'js')" class="text-gray-500 hover:text-gray-700 ml-4">
-                <i class="fas fa-copy"></i>
-              </button>
-              <span v-if="showJsCopySuccess" class="text-green-500 ml-2">複製成功！</span>
-            </div>
-          </h3>
-          <pre class="overflow-auto max-h-64 bg-gray-100 p-4 rounded-lg">{{ jsContent }}</pre>
+          <pre class="overflow-auto max-h-64 bg-gray-100 p-4 rounded-lg">
+            {{ generatedCode }}
+          </pre>
           <div class="flex justify-center items-center mt-4">
             <button @click="showCopyContent = false" class="text-white bg-gray-400 px-4 py-2 rounded-md">
               關閉
