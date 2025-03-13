@@ -456,7 +456,7 @@ function getCookie(name) {
           <i class="fas fa-code"></i>
         </button>
         <div v-if="hints.resultPreview.show" id="CookiePopResultPreviewMessage"
-          class="text-blue font-bold inline-block p-4 bg-white z-[150] rounded-lg absolute top-5 right-[calc(100%+15px)] w-full border border-gray-300 shadow-md"
+          class="text-blue font-bold inline-block p-4 bg-white z-[150] rounded-lg absolute top-5 right-[calc(100%+15px)] w-[260px] border border-gray-300 shadow-md"
           style="font-size: 1rem;">
           <div>
             {{ hints.resultPreview.message }}
