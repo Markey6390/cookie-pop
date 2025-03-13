@@ -5,6 +5,7 @@ import postcss from 'postcss'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/cookie-pop/',
   plugins: [vue(), tailwindcss()],
   css: {
     postcss,
