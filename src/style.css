@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+html {
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  color: #333;
+}
+
+button {
+  cursor: pointer;
+}
+a {
+  color: -webkit-link;   /* 預設超連結顏色，通常是藍色 */
+  text-decoration: underline; /* 預設有底線 */
+  cursor: pointer; /* 滑鼠變成手型 */
+}
+
+a:visited {
+  color: purple; /* 造訪過的連結通常是紫色 */
+}
+
+a:hover {
+  text-decoration: underline; /* 滑鼠懸停時通常保持底線 */
+}
+
+a:active {
+  color: red; /* 點擊時的顏色 */
+}
+
+
+
+#app {
+  min-height: 100vh;
+  width: 100%;
+}
