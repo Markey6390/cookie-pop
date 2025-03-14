@@ -4,7 +4,7 @@
 <template>
     <div class="bg-gray-100 p-6 rounded-lg shadow-md mb-[30px]">
         <h2 class="text-2xl font-bold text-gray-800 mb-2">Cookie Pop!</h2>
-        <p class="text-gray-700 text-lg">Cookie Pop 是一個用於快速生成 Cookie 告知 (Cookie Consent)
+        <p class="text-gray-700 text-lg">餅乾跳 Cookie Pop 是一個用於快速生成 Cookie 告知 (Cookie Consent)
             的工具，您將透過介面操作來制定您偏好的樣式以及內容，最後您可以直接取得程式碼，並將其用在您的網站上。</p>
     </div>
 
