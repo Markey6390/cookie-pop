@@ -11,29 +11,60 @@ const messageTemplates = {
 
 const selectedTemplate = ref(messageTemplates.standard);
 
-const position = ref('fixed');
-const width = ref('100vw');
-const height = ref('auto');
-const borderStyle = ref('solid');
-const borderWidth = ref('0px');
-const borderColor = ref('#000000');
-const borderRadius = ref('10px');
-const maxWidth = ref('420px');
-const left = ref('auto');
-const right = ref('30px');
-const top = ref('auto');
-const bottom = ref('30px');
-const backgroundColor = ref('#ffffff');
-const backgroundOpacity = ref(1);
-const fontSize = ref('16px');
-const textAlign = ref('left');
-const padding = ref('30px');
-const lineHeight = ref('1.4');
-const shadowColor = ref('#888888');
-const shadowOffsetX = ref(0);
-const shadowOffsetY = ref(0);
-const shadowBlur = ref(10);
-const shadowSpread = ref(0);
+const stylePresets = reactive({
+  absolute: {
+    label: '固定於右下',
+    styles: {
+      position: 'fixed',
+      maxWidth: '420px',
+      right: '30px',
+      bottom: '30px',
+      left: 'auto',
+      top: 'auto',
+      borderRadius: '10px',
+    }
+  },
+  fixed: {
+    label: '固定於下方',
+    styles: {
+      position: 'fixed',
+      maxWidth: '100vw',
+      left: '0',
+      right: '0',
+      bottom: '0',
+      top: 'auto',
+      borderRadius: '0',
+    }
+  }
+})
+
+const cookiePopStyles = reactive({
+  position: 'fixed',
+  width: '100vw',
+  maxWidth: '420px',
+  height: 'auto',
+  borderStyle: 'solid',
+  borderWidth: '0px',
+  borderColor: '#000000',
+  borderRadius: '10px',
+  left: 'auto',
+  right: '30px',
+  top: 'auto',
+  bottom: '30px',
+  backgroundColor: '#ffffff',
+  backgroundOpacity: 1,
+  fontSize: '16px',
+  textAlign: 'left',
+  padding: '30px',
+  lineHeight: '1.4',
+  shadowOffsetX: 0,
+  shadowOffsetY: 0,
+  shadowBlur: 12,
+  shadowSpread: 0,
+  shadowColor: '#888888',
+  zIndex: 9999,
+});
+
 const isContentSettingsOpen = ref(true);
 const isSizeSettingsOpen = ref(false);
 const isPositionSettingsOpen = ref(false);
@@ -92,7 +123,12 @@ const showOverlay = computed(() => {
   return shouldShowOverlay
 })
 
+const selectedPreset = ref('absolute');
 
+function applyPreset() {
+  const preset = stylePresets[selectedPreset.value];
+  Object.assign(cookiePopStyles, preset.styles);
+}
 
 function closeCookiePop() {
   // Logic to close the Cookie Pop
@@ -103,9 +139,8 @@ function copyContent() {
   showCopyContent.value = true;
   const cookieKey = `cookiePopClosed_${Math.random().toString(36).substring(2, 15)}`;
 
-  const clonedElement = (document.getElementById('CookiePopResultPreview')).cloneNode(true);
+  const clonedElement = (document.getElementById('CookiePop')).cloneNode(true);
   clonedElement.style.display = 'none';
-  clonedElement.style.zIndex = 9999;
   (['#CookiePopResultPreviewMessage', '#CookiePopCopyButton']).forEach(selector => {
     clonedElement.querySelectorAll(selector).forEach(el => el.remove());
   });
@@ -114,9 +149,8 @@ function copyContent() {
   generatedCode.value = `
 ${htmlCode}
 <script>
-function getCookie(name) { return document.cookie.split('; ').find(row => row.startsWith(name + '=')) ?.split('=')[1] || null; }
-if (getCookie('${cookieKey}') !== 'true') { document.querySelector('#CookiePopResultPreview').style.display = 'block'; }
-document.querySelector('#CookiePopCloseButton').addEventListener('click', function() { document.cookie = '${cookieKey}=true; max-age=${expirationTime.value}; path=\/'; document.querySelector('#CookiePopResultPreview').style.display = 'none'; });
+if (!document.cookie.includes("${cookieKey}=true")) { document.querySelector('#CookiePop').style.display = 'block'; }
+document.querySelector('#CookiePopCloseButton').addEventListener('click', function() { document.cookie = "${cookieKey}=true; path=\/; max-age=${expirationTime.value}"; document.querySelector('#CookiePop').style.display = 'none'; });
 <\/script>`;
 }
 
@@ -170,7 +204,7 @@ function getCookie(name) {
   <div class="flex">
     <div v-if="showOverlay" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"></div>
     <!-- 功能面板 -->
-    <div class="w-[300px] h-screen fixed left-0 top-0 p-4 bg-gray-100"
+    <div class="w-[300px] h-screen fixed left-0 top-0 p-4 bg-gray-100 pb-[200px]"
       :style="{ overflowY: hints.controlPanel.show ? 'visible' : 'auto' }"
       :class="hints.controlPanel.show ? 'z-100' : 'z-0'">
       <div class="mb-6 text-left">
@@ -193,8 +227,16 @@ function getCookie(name) {
           </span>
         </h3>
         <div v-if="isContentSettingsOpen">
-          <div class="mb-6 text-left">
-            <label class="block mb-2">內文樣板</label>
+          <div class="mb-4">
+            <label class="block mb-2">預設樣式模板</label>
+            <select v-model="selectedPreset" @change="applyPreset" class="w-full p-2 border">
+              <option v-for="(preset, key) in stylePresets" :key="key" :value="key">
+                {{ preset.label }}
+              </option>
+            </select>
+          </div>
+          <div class="mb-4 text-left">
+            <label class="block mb-2">預設內文樣板</label>
             <select v-model="selectedTemplate" class="w-full p-2 border">
               <option :value="messageTemplates.simple">簡單</option>
               <option :value="messageTemplates.standard">標準</option>
@@ -211,11 +253,11 @@ function getCookie(name) {
           </div>
           <div class="mb-4">
             <label class="block mb-2">字體大小</label>
-            <input type="text" v-model="fontSize" class="w-full p-2 border" />
+            <input type="text" v-model="cookiePopStyles.fontSize" class="w-full p-2 border" />
           </div>
           <div class="mb-4">
             <label class="block mb-2">內文對齊</label>
-            <select v-model="textAlign" class="w-full p-2 border">
+            <select v-model="cookiePopStyles.textAlign" class="w-full p-2 border">
               <option value="left">左對齊</option>
               <option value="center">置中</option>
               <option value="right">右對齊</option>
@@ -223,143 +265,31 @@ function getCookie(name) {
           </div>
           <div class="mb-4">
             <label class="block mb-2">內距 Padding</label>
-            <input type="text" v-model="padding" class="w-full p-2 border" />
+            <input type="text" v-model="cookiePopStyles.padding" class="w-full p-2 border" />
           </div>
           <div class="mb-4">
             <label class="block mb-2">內容行高</label>
-            <input type="text" v-model="lineHeight" class="w-full p-2 border" />
+            <input type="text" v-model="cookiePopStyles.lineHeight" class="w-full p-2 border" />
           </div>
           <div class="mb-4 text-left">
             <label class="block mb-2">背景顏色</label>
             <div @click="$refs.bgColorPicker.click()" class="w-full p-2 border bg-gray-200"
-              :style="{ backgroundColor: backgroundColor }"></div>
-            <input type="color" v-model="backgroundColor" ref="bgColorPicker" class="hidden"
-              @input="backgroundColor = $event.target.value" />
+              :style="{ backgroundColor: cookiePopStyles.backgroundColor }"></div>
+            <input type="color" v-model="cookiePopStyles.backgroundColor" ref="bgColorPicker" class="hidden"
+              @input="cookiePopStyles.backgroundColor = $event.target.value" />
           </div>
           <div class="mb-4 text-left">
             <label class="block mb-2">背景透明度</label>
-            <input type="range" v-model="backgroundOpacity" min="0" max="1" step="0.01" class="w-full" />
+            <input type="range" v-model="cookiePopStyles.backgroundOpacity" min="0" max="1" step="0.01"
+              class="w-full" />
+          </div>
+          <div class="mb-4 text-left">
+            <label class="block mb-2">堆疊順序(z-index)</label>
+            <input type="text" v-model="cookiePopStyles.zIndex" class="w-full p-2 border">
           </div>
         </div>
       </div>
-      <div class="mb-6 text-left">
-        <h3 :class="{ 'text-blue-500 border-blue-500': isSizeSettingsOpen }"
-          class="text-md font-bold mb-2 cursor-pointer border-b border-gray-300"
-          @click="isSizeSettingsOpen = !isSizeSettingsOpen">
-          尺寸設置
-        </h3>
-        <div v-if="isSizeSettingsOpen">
-          <div class="mb-4">
-            <label class="block mb-2">寬度</label>
-            <input type="text" v-model="width" class="w-full p-2 border" />
-          </div>
-          <div class="mb-4">
-            <label class="block mb-2">最大寬度(寬度隨視窗變大，但不會超過這個數值)</label>
-            <input type="text" v-model="maxWidth" class="w-full p-2 border" />
-          </div>
-          <div class="mb-4">
-            <label class="block mb-2">高度</label>
-            <input type="text" v-model="height" class="w-full p-2 border" />
-          </div>
-        </div>
-      </div>
-      <div class="mb-6 text-left">
-        <h3 :class="{ 'text-blue-500 border-blue-500': isPositionSettingsOpen }"
-          class="text-md font-bold mb-2 cursor-pointer border-b border-gray-300"
-          @click="isPositionSettingsOpen = !isPositionSettingsOpen">
-          定位設置
-        </h3>
-        <div v-if="isPositionSettingsOpen">
-          <div class="mb-4">
-            <label class="block mb-2">定位方式</label>
-            <select v-model="position" class="w-full p-2 border">
-              <option value="fixed">固定</option>
-              <option value="absolute">絕對</option>
-              <option value="relative">相對</option>
-            </select>
-          </div>
-          <div class="mb-4">
-            <label class="block mb-2">左定位</label>
-            <input type="text" v-model="left" class="w-full p-2 border" />
-          </div>
-          <div class="mb-4">
-            <label class="block mb-2">右定位</label>
-            <input type="text" v-model="right" class="w-full p-2 border" />
-          </div>
-          <div class="mb-4">
-            <label class="block mb-2">上定位</label>
-            <input type="text" v-model="top" class="w-full p-2 border" />
-          </div>
-          <div class="mb-4">
-            <label class="block mb-2">下定位</label>
-            <input type="text" v-model="bottom" class="w-full p-2 border" />
-          </div>
-        </div>
-      </div>
-      <div class="mb-6 text-left">
-        <h3 :class="{ 'text-blue-500 border-blue-500': isBorderSettingsOpen }"
-          class="text-md font-bold mb-2 cursor-pointer border-b border-gray-300"
-          @click="isBorderSettingsOpen = !isBorderSettingsOpen">
-          外框設置
-        </h3>
-        <div v-if="isBorderSettingsOpen">
-          <div class="mb-4">
-            <label class="block mb-2">外框樣式</label>
-            <select v-model="borderStyle" class="w-full p-2 border">
-              <option value="solid">實線</option>
-              <option value="dashed">虛線</option>
-              <option value="dotted">點線</option>
-            </select>
-          </div>
-          <div class="mb-4">
-            <label class="block mb-2">外框粗細</label>
-            <input type="text" v-model="borderWidth" class="w-full p-2 border" />
-          </div>
-          <div class="mb-4">
-            <label class="block mb-2">外框顏色</label>
-            <div @click="$refs.colorPicker.click()" class="w-full p-2 border bg-gray-200"
-              :style="{ backgroundColor: borderColor }"></div>
-            <input type="color" v-model="borderColor" ref="colorPicker" class="hidden"
-              @input="borderColor = $event.target.value" />
-          </div>
-          <div class="mb-4">
-            <label class="block mb-2">外框圓角</label>
-            <input type="text" v-model="borderRadius" class="w-full p-2 border" />
-          </div>
-        </div>
-      </div>
-      <div class="mb-6 text-left">
-        <h3 :class="{ 'text-blue-500 border-blue-500': isShadowSettingsOpen }"
-          class="text-md font-bold mb-2 cursor-pointer border-b border-gray-300"
-          @click="isShadowSettingsOpen = !isShadowSettingsOpen">
-          陰影設置
-        </h3>
-        <div v-if="isShadowSettingsOpen">
-          <div class="mb-4">
-            <label class="block mb-2">陰影顏色</label>
-            <div @click="$refs.shadowColorPicker.click()" class="w-full p-2 border bg-gray-200"
-              :style="{ backgroundColor: shadowColor }"></div>
-            <input type="color" v-model="shadowColor" ref="shadowColorPicker" class="hidden"
-              @input="shadowColor = $event.target.value" />
-          </div>
-          <div class="mb-4">
-            <label class="block mb-2">水平偏移: {{ shadowOffsetX }}px</label>
-            <input type="range" v-model="shadowOffsetX" min="-50" max="50" step="1" class="w-full" />
-          </div>
-          <div class="mb-4">
-            <label class="block mb-2">垂直偏移: {{ shadowOffsetY }}px</label>
-            <input type="range" v-model="shadowOffsetY" min="-50" max="50" step="1" class="w-full" />
-          </div>
-          <div class="mb-4">
-            <label class="block mb-2">模糊半徑: {{ shadowBlur }}px</label>
-            <input type="range" v-model="shadowBlur" min="0" max="100" step="1" class="w-full" />
-          </div>
-          <div class="mb-4">
-            <label class="block mb-2">擴展半徑: {{ shadowSpread }}px</label>
-            <input type="range" v-model="shadowSpread" min="-50" max="50" step="1" class="w-full" />
-          </div>
-        </div>
-      </div>
+
       <div class="mb-6 text-left">
         <h3 :class="{ 'text-blue-500 border-blue-500': isExpirationSettingsOpen }"
           class="text-md font-bold mb-2 cursor-pointer border-b border-gray-300"
@@ -403,6 +333,124 @@ function getCookie(name) {
           </div>
         </div>
       </div>
+      <div class="mb-6 text-left">
+        <h3 :class="{ 'text-blue-500 border-blue-500': isSizeSettingsOpen }"
+          class="text-md font-bold mb-2 cursor-pointer border-b border-gray-300"
+          @click="isSizeSettingsOpen = !isSizeSettingsOpen">
+          尺寸設置
+        </h3>
+        <div v-if="isSizeSettingsOpen">
+          <div class="mb-4">
+            <label class="block mb-2">寬度</label>
+            <input type="text" v-model="cookiePopStyles.width" class="w-full p-2 border" />
+          </div>
+          <div class="mb-4">
+            <label class="block mb-2">最大寬度(寬度隨視窗變大，但不會超過這個數值)</label>
+            <input type="text" v-model="cookiePopStyles.maxWidth" class="w-full p-2 border" />
+          </div>
+          <div class="mb-4">
+            <label class="block mb-2">高度</label>
+            <input type="text" v-model="cookiePopStyles.height" class="w-full p-2 border" />
+          </div>
+        </div>
+      </div>
+      <div class="mb-6 text-left">
+        <h3 :class="{ 'text-blue-500 border-blue-500': isPositionSettingsOpen }"
+          class="text-md font-bold mb-2 cursor-pointer border-b border-gray-300"
+          @click="isPositionSettingsOpen = !isPositionSettingsOpen">
+          定位設置
+        </h3>
+        <div v-if="isPositionSettingsOpen">
+          <div class="mb-4">
+            <label class="block mb-2">定位方式</label>
+            <select v-model="cookiePopStyles.position" class="w-full p-2 border">
+              <option value="fixed">固定</option>
+              <option value="absolute">絕對</option>
+              <option value="relative">相對</option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="block mb-2">左定位</label>
+            <input type="text" v-model="cookiePopStyles.left" class="w-full p-2 border" />
+          </div>
+          <div class="mb-4">
+            <label class="block mb-2">右定位</label>
+            <input type="text" v-model="cookiePopStyles.right" class="w-full p-2 border" />
+          </div>
+          <div class="mb-4">
+            <label class="block mb-2">上定位</label>
+            <input type="text" v-model="cookiePopStyles.top" class="w-full p-2 border" />
+          </div>
+          <div class="mb-4">
+            <label class="block mb-2">下定位</label>
+            <input type="text" v-model="cookiePopStyles.bottom" class="w-full p-2 border" />
+          </div>
+        </div>
+      </div>
+      <div class="mb-6 text-left">
+        <h3 :class="{ 'text-blue-500 border-blue-500': isBorderSettingsOpen }"
+          class="text-md font-bold mb-2 cursor-pointer border-b border-gray-300"
+          @click="isBorderSettingsOpen = !isBorderSettingsOpen">
+          外框設置
+        </h3>
+        <div v-if="isBorderSettingsOpen">
+          <div class="mb-4">
+            <label class="block mb-2">外框樣式</label>
+            <select v-model="cookiePopStyles.borderStyle" class="w-full p-2 border">
+              <option value="solid">實線</option>
+              <option value="dashed">虛線</option>
+              <option value="dotted">點線</option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="block mb-2">外框粗細</label>
+            <input type="text" v-model="cookiePopStyles.borderWidth" class="w-full p-2 border" />
+          </div>
+          <div class="mb-4">
+            <label class="block mb-2">外框顏色</label>
+            <div @click="$refs.colorPicker.click()" class="w-full p-2 border bg-gray-200"
+              :style="{ backgroundColor: cookiePopStyles.borderColor }"></div>
+            <input type="color" v-model="cookiePopStyles.borderColor" ref="colorPicker" class="hidden"
+              @input="cookiePopStyles.borderColor = $event.target.value" />
+          </div>
+          <div class="mb-4">
+            <label class="block mb-2">外框圓角</label>
+            <input type="text" v-model="cookiePopStyles.borderRadius" class="w-full p-2 border" />
+          </div>
+        </div>
+      </div>
+      <div class="mb-6 text-left">
+        <h3 :class="{ 'text-blue-500 border-blue-500': isShadowSettingsOpen }"
+          class="text-md font-bold mb-2 cursor-pointer border-b border-gray-300"
+          @click="isShadowSettingsOpen = !isShadowSettingsOpen">
+          陰影設置
+        </h3>
+        <div v-if="isShadowSettingsOpen">
+          <div class="mb-4">
+            <label class="block mb-2">陰影顏色</label>
+            <div @click="$refs.shadowColorPicker.click()" class="w-full p-2 border bg-gray-200"
+              :style="{ backgroundColor: cookiePopStyles.shadowColor }"></div>
+            <input type="color" v-model="cookiePopStyles.shadowColor" ref="shadowColorPicker" class="hidden"
+              @input="cookiePopStyles.shadowColor = $event.target.value" />
+          </div>
+          <div class="mb-4">
+            <label class="block mb-2">水平偏移: {{ cookiePopStyles.shadowOffsetX }}px</label>
+            <input type="range" v-model="cookiePopStyles.shadowOffsetX" min="-50" max="50" step="1" class="w-full" />
+          </div>
+          <div class="mb-4">
+            <label class="block mb-2">垂直偏移: {{ cookiePopStyles.shadowOffsetY }}px</label>
+            <input type="range" v-model="cookiePopStyles.shadowOffsetY" min="-50" max="50" step="1" class="w-full" />
+          </div>
+          <div class="mb-4">
+            <label class="block mb-2">模糊半徑: {{ cookiePopStyles.shadowBlur }}px</label>
+            <input type="range" v-model="cookiePopStyles.shadowBlur" min="0" max="100" step="1" class="w-full" />
+          </div>
+          <div class="mb-4">
+            <label class="block mb-2">擴展半徑: {{ cookiePopStyles.shadowSpread }}px</label>
+            <input type="range" v-model="cookiePopStyles.shadowSpread" min="-50" max="50" step="1" class="w-full" />
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 網頁內容區域 -->
@@ -434,9 +482,26 @@ function getCookie(name) {
       <MainContent />
 
 
-      <div id="CookiePopResultPreview"
-        :style="{ position: position, width: width, maxWidth: maxWidth, height: height, borderStyle: borderStyle, borderWidth: borderWidth, borderColor: borderColor, borderRadius: borderRadius, left: left, right: right, top: top, bottom: bottom, backgroundColor: `rgba(${parseInt(backgroundColor.slice(1, 3), 16)}, ${parseInt(backgroundColor.slice(3, 5), 16)}, ${parseInt(backgroundColor.slice(5, 7), 16)}, ${backgroundOpacity})`, fontSize: fontSize, textAlign: textAlign, padding: padding, lineHeight: lineHeight, boxShadow: `${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px ${shadowSpread}px ${shadowColor}` }"
-        :class="hints.resultPreview.show ? 'z-100' : ''">
+      <div id="CookiePop" :style="{
+        position: cookiePopStyles.position,
+        width: cookiePopStyles.width,
+        maxWidth: cookiePopStyles.maxWidth,
+        height: cookiePopStyles.height,
+        borderStyle: cookiePopStyles.borderStyle,
+        borderWidth: cookiePopStyles.borderWidth,
+        borderColor: cookiePopStyles.borderColor,
+        borderRadius: cookiePopStyles.borderRadius,
+        left: cookiePopStyles.left,
+        right: cookiePopStyles.right,
+        top: cookiePopStyles.top,
+        bottom: cookiePopStyles.bottom,
+        backgroundColor: `rgba(${parseInt(cookiePopStyles.backgroundColor.slice(1, 3), 16)}, ${parseInt(cookiePopStyles.backgroundColor.slice(3, 5), 16)}, ${parseInt(cookiePopStyles.backgroundColor.slice(5, 7), 16)}, ${cookiePopStyles.backgroundOpacity})`,
+        fontSize: cookiePopStyles.fontSize,
+        textAlign: cookiePopStyles.textAlign,
+        padding: cookiePopStyles.padding,
+        lineHeight: cookiePopStyles.lineHeight,
+        boxShadow: `${cookiePopStyles.shadowOffsetX}px ${cookiePopStyles.shadowOffsetY}px ${cookiePopStyles.shadowBlur}px ${cookiePopStyles.shadowSpread}px ${cookiePopStyles.shadowColor}`,
+      }" :class="hints.resultPreview.show ? 'z-100' : ''">
         <button id="CookiePopCopyButton" @click="copyContent"
           class="absolute bottom-[calc(100%+10px)] left-2 text-green-500 hover:text-gray-700 bg-white rounded-full p-2 border border-green-300 shadow-md">
           <i class="fas fa-code"></i>
