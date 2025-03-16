@@ -456,9 +456,10 @@ function getCookie(name) {
     <!-- 網頁內容區域 -->
     <div class="relative flex-1 ml-[300px] p-4 overflow-y-auto h-screen">
 
-      <div id="resultContainer" v-if="showCopyContent" class="fixed z-150 max-w-[600px] w-screen right-15 top-15">
+      <div id="resultContainer" v-if="showCopyContent"
+        class="fixed z-150 max-w-[600px] w-screen top-[30vh] left-[calc(50%-300px)]">
         <div class="mt-4 p-6 border bg-white shadow-lg  relative rounded-lg max-w-3xl mx-auto">
-          <h3 class="font-bold mb-4 flex justify-start items-center">
+          <h3 class="font-bold mb-4 flex justify-start items-center text-lg">
             HTML/JavaScript 程式碼
             <div class="flex items-center">
               <button @click="copyToClipboard" class="text-gray-500 hover:text-gray-700 ml-4">
@@ -503,8 +504,8 @@ function getCookie(name) {
         boxShadow: `${cookiePopStyles.shadowOffsetX}px ${cookiePopStyles.shadowOffsetY}px ${cookiePopStyles.shadowBlur}px ${cookiePopStyles.shadowSpread}px ${cookiePopStyles.shadowColor}`,
       }" :class="hints.resultPreview.show ? 'z-100' : ''">
         <button id="CookiePopCopyButton" @click="copyContent"
-          class="absolute bottom-[calc(100%+10px)] left-2 text-green-500 hover:text-gray-700 bg-white rounded-full p-2 border border-green-300 shadow-md">
-          <i class="fas fa-code"></i>
+          class="absolute bottom-[calc(100%+10px)] left-2 text-green-500 bg-white rounded p-2 border border-green-300 shadow-md hover:text-green-700">
+          取得程式碼
         </button>
         <div v-if="hints.resultPreview.show" id="CookiePopResultPreviewMessage"
           class="text-blue font-bold inline-block p-4 bg-white z-[150] rounded-lg absolute top-5 right-[calc(100%+15px)] w-[260px] border border-gray-300 shadow-md"
