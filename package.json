@@ -3,7 +3,7 @@
   "homepage": "https://Markey6390.github.io/cookie-pop",
 
   "private": true,
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "scripts": {
     "dev": "vite",

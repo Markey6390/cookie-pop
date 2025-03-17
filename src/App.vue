@@ -502,6 +502,7 @@ function getCookie(name) {
         padding: cookiePopStyles.padding,
         lineHeight: cookiePopStyles.lineHeight,
         boxShadow: `${cookiePopStyles.shadowOffsetX}px ${cookiePopStyles.shadowOffsetY}px ${cookiePopStyles.shadowBlur}px ${cookiePopStyles.shadowSpread}px ${cookiePopStyles.shadowColor}`,
+        zIndex: cookiePopStyles.zIndex,
       }" :class="hints.resultPreview.show ? 'z-100' : ''">
         <button id="CookiePopCopyButton" @click="copyContent"
           class="absolute bottom-[calc(100%+10px)] left-2 text-green-500 bg-white rounded p-2 border border-green-300 shadow-md hover:text-green-700">
